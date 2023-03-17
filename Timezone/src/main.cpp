@@ -5,7 +5,7 @@
 #include <ArduinoJson.h>
 
 const char *ssid = "XXXXX";               
-const char *password = "XXXX";        
+const char *password = "XXXXX";        
 const char *mqtt_broker = "X.X.X.X"; 
 const int mqtt_port = 1883;
 WiFiClient espClient;
@@ -183,46 +183,60 @@ void callback(char *topic, byte *payload, int length)
     handleOutput(parsedJson);
     Serial.println(" - - - - - - - - - - - -");
 }
-void setup()
-{
+void setup() {
     // Set software serial baud to 115200;
     Serial.begin(115200);
 
     // connecting to a WiFi network
     WiFi.begin(ssid, password);
-    while (WiFi.status() != WL_CONNECTED)
-    {
+    while (WiFi.status() != WL_CONNECTED) {
         delay(500);
-        Serial.println("Connecting to WiFi..");
+        Serial.println("Conectando al WiFi..");
     }
 
-    Serial.println("Connected to the WiFi network");
+    Serial.println("Conectado");
 
     // connecting to a mqtt broker
     client.setServer(mqtt_broker, mqtt_port);
     client.setCallback(callback);
-    while (!client.connected())
-    {
+
+    while (!client.connected()) {
         String client_id = "esp8266-client-";
         client_id += String(WiFi.macAddress());
 
         Serial.printf("Realizando conexion de cliente %s \n", client_id.c_str());
-        if (client.connect(client_id.c_str()))
-        {
-            Serial.println("El cliente se ha conectado correctamente");
-            client.publish("alive", "El cliente se ha conectado de forma exitosa");
+        if (client.connect(client_id.c_str())) {
+            Serial.println("Conectado a MQTT broker");
+            // Suscribirse a los topics necesarios después de conectarse al broker
             client.subscribe("input");
-            client.publish("alive", "Cliente activo en canales");
-        }
-        else
-        {
-            Serial.print("failed with state ");
-            Serial.print(client.state());
-            delay(2000);
+        } else {
+            Serial.print("Error al conectar al broker: ");
+            Serial.println(client.state());
+            Serial.println("Esperando 5 segundos antes de volver a intentarlo...");
+            delay(5000);
         }
     }
 }
-void loop()
-{
+
+void loop() {
+    // Loop de PubSubClient
+    String client_id = "esp8266-client-";
+        client_id += String(WiFi.macAddress());
+    if (!client.connected()) {
+        Serial.println("La conexion con el broker se ha perdido. Intentando reconectar...");
+        while (!client.connected()) {
+            if (client.connect(client_id.c_str())) {
+                Serial.println("Reconectado al broker MQTT.");
+                Serial.println("Conectado. Que zona horaria desea consultar?");
+                // Suscribirse a los topics necesarios después de conectarse al broker
+                client.subscribe("input");
+            } else {
+                Serial.print("Error al conectar al broker: ");
+                Serial.println(client.state());
+                Serial.println("Esperando 5 segundos antes de volver a intentarlo...");
+                delay(5000);
+            }
+        }
+    }
     client.loop();
 }
