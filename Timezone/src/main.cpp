@@ -1,14 +1,12 @@
-#include <sstream>
-#include <string>
 #include <iostream>
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 
-const char *ssid = "Xiaomi 11T Pro";               // Enter your WiFi name
-const char *password = "andres11";        // Enter WiFi password// MQTT Broker
-const char *mqtt_broker = "192.168.215.19"; // Enter your WiFi or Ethernet IP
+const char *ssid = "XXXXX";               
+const char *password = "XXXX";        
+const char *mqtt_broker = "X.X.X.X"; 
 const int mqtt_port = 1883;
 WiFiClient espClient;
 PubSubClient client(espClient);
